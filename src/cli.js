@@ -8,6 +8,10 @@ async function loadConfig(configPath) {
   const absolutePath = path.isAbsolute(configPath) ? configPath : path.resolve(configPath);
   const configModule = await import(pathToFileURL(absolutePath).href);
 
+  if (configModule.default && typeof configModule.default === "object" && "config" in configModule.default) {
+    return configModule.default.config;
+  }
+
   if ("default" in configModule) {
     return configModule.default;
   }

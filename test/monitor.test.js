@@ -153,6 +153,31 @@ module.exports = {
   assert.equal(typeof config.targets[0].extractPrices, "function");
 });
 
+test("loadConfig reads CommonJS named config exports", async () => {
+  const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-cjs-config-"));
+  const configPath = path.join(tempDirectory, "monitor.config.js");
+
+  await fs.writeFile(
+    configPath,
+    `exports.config = {
+  targets: [
+    {
+      name: "Named export",
+      url: "https://example.com/named",
+      priceRange: { min: 40, max: 90 },
+      extractPrices: () => []
+    }
+  ]
+};
+`
+  );
+
+  const config = await loadConfig(configPath);
+
+  assert.equal(Array.isArray(config.targets), true);
+  assert.equal(config.targets[0].name, "Named export");
+});
+
 test("loadConfig reads ESM monitor config files", async () => {
   const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-esm-"));
   const configPath = path.join(tempDirectory, "monitor.config.mjs");

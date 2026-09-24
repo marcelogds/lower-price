@@ -88,7 +88,8 @@ function validateMonitorConfig(target) {
 async function monitorTarget(target, fetchImpl) {
   validateMonitorConfig(target);
 
-  const response = await fetchImpl(target.url, { headers: target.headers });
+  const requestOptions = target.headers ? { headers: target.headers } : undefined;
+  const response = requestOptions ? await fetchImpl(target.url, requestOptions) : await fetchImpl(target.url);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${target.url}: ${response.status}`);
