@@ -132,3 +132,47 @@ module.exports = {
   assert.equal(config.targets[0].name, "Flights");
   assert.equal(typeof config.targets[0].extractPrices, "function");
 });
+
+test("loadConfig reads ESM monitor config files", async () => {
+  const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-esm-"));
+  const configPath = path.join(tempDirectory, "monitor.config.mjs");
+
+  await fs.writeFile(
+    configPath,
+    `export default {
+  targets: [
+    {
+      name: "Products",
+      url: "https://example.com/products",
+      priceRange: { min: 50, max: 150 },
+      extractPrices: ({ html }) => html.match(/\\d+/g) || []
+    }
+  ]
+};
+`
+  );
+
+  const config = await loadConfig(configPath);
+
+  assert.equal(Array.isArray(config.targets), true);
+  assert.equal(config.targets[0].name, "Products");
+  assert.equal(typeof config.targets[0].extractPrices, "function");
+});
+
+test("monitorWebsites rejects invalid price range bounds", async () => {
+  await assert.rejects(
+    () =>
+      monitorWebsites({
+        targets: [
+          {
+            name: "Broken range",
+            url: "https://example.com",
+            priceRange: { min: "cheap" },
+            extractPrices: () => []
+          }
+        ],
+        fetchImpl: async () => ({ ok: true, status: 200, text: async () => "" })
+      }),
+    /priceRange\.min as a number/
+  );
+});

@@ -7,7 +7,16 @@ const { monitorWebsites } = require("./monitor");
 async function loadConfig(configPath) {
   const absolutePath = path.isAbsolute(configPath) ? configPath : path.resolve(configPath);
   const configModule = await import(pathToFileURL(absolutePath).href);
-  return configModule.default || configModule;
+
+  if ("default" in configModule) {
+    return configModule.default;
+  }
+
+  if ("config" in configModule) {
+    return configModule.config;
+  }
+
+  throw new TypeError("Config file must export a default config or a named config export");
 }
 
 async function main() {

@@ -63,6 +63,22 @@ function validateMonitorConfig(target) {
   if (typeof target.extractPrices !== "function") {
     throw new TypeError(`Target "${target.name}" must define extractPrices`);
   }
+
+  if (target.priceRange != null) {
+    if (typeof target.priceRange !== "object") {
+      throw new TypeError(`Target "${target.name}" must define priceRange as an object`);
+    }
+
+    const { min, max } = target.priceRange;
+
+    if (min != null && !Number.isFinite(min)) {
+      throw new TypeError(`Target "${target.name}" must define priceRange.min as a number`);
+    }
+
+    if (max != null && !Number.isFinite(max)) {
+      throw new TypeError(`Target "${target.name}" must define priceRange.max as a number`);
+    }
+  }
 }
 
 async function monitorTarget(target, fetchImpl) {
