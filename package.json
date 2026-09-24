@@ -1,0 +1,13 @@
+{
+  "name": "lower-price",
+  "version": "1.0.0",
+  "description": "Projeto para varrer sites em busca de preços baixos",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
