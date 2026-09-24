@@ -107,11 +107,12 @@ test("createRegexExtractor accepts regexes without a global flag", async () => {
 test("loadConfig reads CommonJS monitor config files", async () => {
   const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-"));
   const configPath = path.join(tempDirectory, "monitor.config.js");
+  const srcPath = path.resolve(__dirname, "..", "src");
 
   await fs.writeFile(
     configPath,
     `"use strict";
-const { createRegexExtractor } = require("/home/runner/work/lower-price/lower-price/src");
+const { createRegexExtractor } = require(${JSON.stringify(srcPath)});
 module.exports = {
   targets: [
     {

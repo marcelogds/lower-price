@@ -5,7 +5,7 @@ const { pathToFileURL } = require("node:url");
 const { monitorWebsites } = require("./monitor");
 
 async function loadConfig(configPath) {
-  const absolutePath = path.resolve(process.cwd(), configPath);
+  const absolutePath = path.isAbsolute(configPath) ? configPath : path.resolve(configPath);
   const configModule = await import(pathToFileURL(absolutePath).href);
   return configModule.default || configModule;
 }
@@ -14,7 +14,7 @@ async function main() {
   const configPath = process.argv[2];
 
   if (!configPath) {
-    throw new Error("Usage: npm start -- ./path/to/monitor.config.js");
+    throw new Error("Usage: provide a path to a monitor config file");
   }
 
   const config = await loadConfig(configPath);

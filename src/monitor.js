@@ -39,10 +39,9 @@ function createRegexExtractor(pattern, groupIndex = 1) {
     throw new TypeError("pattern must be a regular expression");
   }
 
-  const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
-  const globalPattern = new RegExp(pattern.source, flags);
-
   return ({ html }) => {
+    const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
+    const globalPattern = new RegExp(pattern.source, flags);
     const matches = html.matchAll(globalPattern);
     return Array.from(matches, (match) => match[groupIndex]).filter(Boolean);
   };
@@ -80,7 +79,11 @@ async function monitorTarget(target, fetchImpl) {
   const priceRange = target.priceRange || {};
   const min = priceRange.min ?? Number.NEGATIVE_INFINITY;
   const max = priceRange.max ?? Number.POSITIVE_INFINITY;
-  const prices = extractedPrices == null ? [] : Array.isArray(extractedPrices) ? extractedPrices : [extractedPrices];
+  let prices = [];
+
+  if (extractedPrices != null) {
+    prices = Array.isArray(extractedPrices) ? extractedPrices : [extractedPrices];
+  }
 
   const matches = prices
     .map((price) => normalizePrice(price))
