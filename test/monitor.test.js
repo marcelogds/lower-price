@@ -104,6 +104,26 @@ test("createRegexExtractor accepts regexes without a global flag", async () => {
   assert.deepEqual(results[0].matches, [15]);
 });
 
+test("createRegexExtractor supports a custom capture group", async () => {
+  const results = await monitorWebsites({
+    targets: [
+      {
+        name: "Products",
+        url: "https://example.com/grouped",
+        priceRange: { min: 80, max: 120 },
+        extractPrices: createRegexExtractor(/data-kind="([^"]+)" data-price="([^"]+)"/g, 2)
+      }
+    ],
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      text: async () => '<div data-kind="sale" data-price="99"></div>'
+    })
+  });
+
+  assert.deepEqual(results[0].matches, [99]);
+});
+
 test("loadConfig reads CommonJS monitor config files", async () => {
   const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-"));
   const configPath = path.join(tempDirectory, "monitor.config.js");
@@ -159,6 +179,15 @@ test("loadConfig reads ESM monitor config files", async () => {
   assert.equal(typeof config.targets[0].extractPrices, "function");
 });
 
+test("loadConfig rejects unsupported module shapes", async () => {
+  const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-invalid-"));
+  const configPath = path.join(tempDirectory, "monitor.config.mjs");
+
+  await fs.writeFile(configPath, "export const somethingElse = {};\n");
+
+  await assert.rejects(() => loadConfig(configPath), /must export a default config or a named config export/);
+});
+
 test("monitorWebsites rejects invalid price range bounds", async () => {
   await assert.rejects(
     () =>
@@ -174,5 +203,23 @@ test("monitorWebsites rejects invalid price range bounds", async () => {
         fetchImpl: async () => ({ ok: true, status: 200, text: async () => "" })
       }),
     /priceRange\.min as a number/
+  );
+});
+
+test("monitorWebsites rejects inverted price ranges", async () => {
+  await assert.rejects(
+    () =>
+      monitorWebsites({
+        targets: [
+          {
+            name: "Broken range order",
+            url: "https://example.com",
+            priceRange: { min: 200, max: 100 },
+            extractPrices: () => []
+          }
+        ],
+        fetchImpl: async () => ({ ok: true, status: 200, text: async () => "" })
+      }),
+    /priceRange\.min less than or equal to priceRange\.max/
   );
 });

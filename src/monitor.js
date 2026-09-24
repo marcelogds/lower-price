@@ -78,6 +78,10 @@ function validateMonitorConfig(target) {
     if (max != null && !Number.isFinite(max)) {
       throw new TypeError(`Target "${target.name}" must define priceRange.max as a number`);
     }
+
+    if (min != null && max != null && min > max) {
+      throw new RangeError(`Target "${target.name}" must define priceRange.min less than or equal to priceRange.max`);
+    }
   }
 }
 
