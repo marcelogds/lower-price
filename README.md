@@ -15,7 +15,7 @@ motor para HTMLs diferentes.
 
 ## Como usar
 
-1. Ajuste a configuração em `/home/runner/work/lower-price/lower-price/examples/sample.config.js`
+1. Ajuste a configuração em `./examples/sample.config.js`
 2. Execute:
 
 ```bash

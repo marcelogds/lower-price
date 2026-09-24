@@ -20,11 +20,14 @@ function normalizePrice(rawPrice) {
   const decimalIndex = Math.max(lastComma, lastDot);
 
   if (decimalIndex >= 0) {
-    const integerPart = cleaned.slice(0, decimalIndex).replace(/[.,]/g, "");
     const decimalPart = cleaned.slice(decimalIndex + 1).replace(/[.,]/g, "");
-    const normalized = `${integerPart}.${decimalPart}`;
-    const value = Number(normalized);
-    return Number.isFinite(value) ? value : null;
+
+    if (decimalPart.length > 0 && decimalPart.length <= 2) {
+      const integerPart = cleaned.slice(0, decimalIndex).replace(/[.,]/g, "");
+      const normalized = `${integerPart}.${decimalPart}`;
+      const value = Number(normalized);
+      return Number.isFinite(value) ? value : null;
+    }
   }
 
   const value = Number(cleaned.replace(/[.,]/g, ""));

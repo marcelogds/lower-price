@@ -2,10 +2,16 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs/promises");
+const os = require("node:os");
+const path = require("node:path");
 const { createRegexExtractor, monitorWebsites, normalizePrice } = require("../src");
+const { loadConfig } = require("../src/cli");
 
 test("normalizePrice parses localized price strings", () => {
   assert.equal(normalizePrice("$1,299.99"), 1299.99);
+  assert.equal(normalizePrice("$1,299"), 1299);
+  assert.equal(normalizePrice("1.299"), 1299);
   assert.equal(normalizePrice("R$ 199,90"), 199.9);
   assert.equal(normalizePrice("2500"), 2500);
   assert.equal(normalizePrice("not a price"), null);
@@ -96,4 +102,32 @@ test("createRegexExtractor accepts regexes without a global flag", async () => {
   });
 
   assert.deepEqual(results[0].matches, [15]);
+});
+
+test("loadConfig reads CommonJS monitor config files", async () => {
+  const tempDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "lower-price-"));
+  const configPath = path.join(tempDirectory, "monitor.config.js");
+
+  await fs.writeFile(
+    configPath,
+    `"use strict";
+const { createRegexExtractor } = require("/home/runner/work/lower-price/lower-price/src");
+module.exports = {
+  targets: [
+    {
+      name: "Flights",
+      url: "https://example.com/flights",
+      priceRange: { min: 100, max: 400 },
+      extractPrices: createRegexExtractor(/data-price="([^"]+)"/)
+    }
+  ]
+};
+`
+  );
+
+  const config = await loadConfig(configPath);
+
+  assert.equal(Array.isArray(config.targets), true);
+  assert.equal(config.targets[0].name, "Flights");
+  assert.equal(typeof config.targets[0].extractPrices, "function");
 });
